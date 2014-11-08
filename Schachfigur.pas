@@ -4,42 +4,48 @@ interface
 
 uses StdCtrls,SysUtils,Graphics,Types;
 
-//type
-//  TMatrix = array[1..8] of array[1..8] of Byte;
+type
+  TMatrix = array[1..8] of array[1..8] of Byte;       //64 Bytes, siehe "besetzt" in main.pas Z.50
+
+type
+  TBFeld = array[1..8] of array[1..8] of Boolean;     //64 Booleans
 
 type TSchachfigur = class(TObject)
- public
-  x:Byte;                                    //position
-  y:Byte;
-  farbe:boolean;                             //1=schwarz,0=weiss
+ private
+  xpos:byte;                                 //position
+  ypos:byte;
+  farbe:boolean;                             //true=schwarz , false=weiss
   name:string;                               //Ausgabename
   typname:string;                            //Grafische Beschriftung
+  procedure clearlegal;                      //sperren aller felder für nächsten Geh- oder Prüfvorgang
 
-  IsLegal:array[1..8] of array[1..8] of Boolean;  //freigabetabelle für den nächsten Gehvorgang
-  
-  procedure zeigeBewegungsmoeglichkeiten(AusgabeMemo:TMemo;FeldCanvas:TCanvas{;besetzt:TMatrix}); virtual;  //markiert alle erlaubten Felder türkis
-  procedure gehe(gx,gy:integer);             //geht auf Feld xy
+ protected
+  function InvertY(a:byte):byte;             //Umkehrung informatisches <-> mathematisches Koordinatensystem (8-1-->1-8)
+
+ public
+  IsLegal:TBFeld;                            //freigabetabelle für den nächsten Gehvorgang (funktioniert nicht mit property)
+
+  property x:byte read xpos;                 //zugriffe
+  property y:byte read ypos;
+  property f:boolean read farbe;
+
+  procedure zeigeBewegungsmoeglichkeiten(AusgabeMemo:TMemo;FeldCanvas:TCanvas;besetzt:TMatrix); virtual;  //markiert alle erlaubten Felder türkis
+  procedure gehe(gx,gy:byte);                //geht auf Feld xy
   procedure zeichnen(cv:TCanvas;mem:TMemo);  //zeichnet bewegtes objekt
   procedure stirb;
 
-  constructor create(px,py:integer;pf:Boolean;pn,pt:string);
-
- protected
-  function InvertY(a:Integer):Integer;      //Umkehrung informatisches <-> mathematisches Koordinatensystem (8-1-->1-8)
-
- private
-  procedure clearlegal;                     //sperren aller felder für nächsten Geh- oder Prüfvorgang
+  constructor create(px,py:byte;pf:Boolean;pn,pt:string);
 end;
 
 implementation
 
-function TSchachfigur.InvertY(a:Integer):Integer;
+function TSchachfigur.InvertY;
 begin
  Result:=(a*(-1))+9;
 end;
 
 procedure TSchachfigur.clearlegal;
-var i,j:Byte;
+var i,j:byte;
 begin
 
 for i:=1 to 8 do
@@ -54,9 +60,9 @@ end;
 
 constructor TSchachfigur.create;
 begin
- inherited Create;
- x:=px;
- y:=py;
+ inherited create;
+ xpos:=px;
+ ypos:=py;
  farbe:=pf;
  name:=pn;
  typname:=pt;
@@ -65,41 +71,42 @@ end;
 procedure TSchachfigur.zeigeBewegungsmoeglichkeiten;
 begin
 
- AusgabeMemo.Lines.add('Figur ' + name + ' angewählt.');
+ AusgabeMemo.Lines.add('Figur ' + name + ' angewählt.');   //textausgabe
  AusgabeMemo.Lines.add('Bewegungsmöglichkeiten sind: ');
 
- clearlegal;
+ clearlegal;                                               //zurücksetzen de letzten routine
 
- FeldCanvas.Brush.Color:=clAqua;
+ FeldCanvas.Brush.Color:=clAqua;                           //setzen der farbe
  FeldCanvas.Pen.Color:=clAqua;
 
 end;
 
 procedure TSchachfigur.zeichnen;
 begin
- if farbe=true then
+ if farbe=true then                                        //farbe setzen
   begin
-   cv.Brush.Color:=clMaroon;
-   cv.Pen.Color:=clWhite;
+   cv.Brush.Color:=clMaroon;                               //füllung
+   cv.Pen.Color:=clWhite;                                  //rand
   end
  else
   begin
-   cv.Brush.Color:=clInfoBk;
-   cv.Pen.Color:=clBlack;
+   cv.Brush.Color:=clInfoBk;                               //füllung
+   cv.Pen.Color:=clBlack;                                  //rand
   end;
 
- cv.Font.Color:=(cv.Pen.Color);
- cv.Rectangle((x-1)*75+11,(Inverty(y)-1)*75+11,(x-1)*75+64,(Inverty(y)-1)*75+64);
- cv.TextOut((x-1)*75+20,(Inverty(y)-1)*75+20,typname);
+ cv.Font.Color:=(cv.Pen.Color);                            //textfarbe
 
- mem.Lines.add(name+': X=' + IntToStr(x) + ', Y=' + IntToStr(y)); // ### AUSGABE ###
+ cv.Rectangle((xpos-1)*75+11,(Inverty(ypos)-1)*75+11,(xpos-1)*75+64,(Inverty(ypos)-1)*75+64);  //figur zeichnen
+ cv.TextOut((xpos-1)*75+20,(Inverty(ypos)-1)*75+20,typname);                                   //beschriften
+
+ mem.Lines.add(name+': X=' + IntToStr(xpos) + ', Y=' + IntToStr(ypos));                        //textausgabe
 
 end;
 
 procedure TSchachfigur.gehe;
 begin
- x:=gx;
- y:=gy;
+ xpos:=gx;
+ ypos:=gy;
  clearlegal;
 end;
 

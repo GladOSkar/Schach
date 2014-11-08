@@ -7,9 +7,6 @@ uses
   Dialogs, ExtCtrls, StdCtrls, jpeg, Schachfigur, Langlaeufer,Types;
 
 type
-  TMatrix = array[1..8] of array[1..8] of Byte;
-
-type
   TForm1 = class(TForm)
 
     StartButton: TButton;
@@ -19,7 +16,7 @@ type
     enter: TButton;
     procedure enterClick(Sender: TObject);               //-->eval;
     procedure StartButtonClick(Sender: TObject);         //-->DrawField;
-    procedure FormCreate(Sender: TObject);               //Erstellt alle figuren und skaliert die Elemente
+    procedure FormCreate(Sender: TObject);               //Erstellt alle figuren und skaliert das GUI
     procedure FormClose(Sender: TObject; var Action: TCloseAction); //gibt den Ram wieder Frei
     procedure Edit1Enter(Sender: TObject);               //macht die kommandozeile leer
     procedure Edit1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); //-->eval;
@@ -43,10 +40,10 @@ implementation
 
 {$R *.dfm}
 
-var turms1, turms2, laeufers1, laeufers2, dames,
+var turms1, turms2, laeufers1, laeufers2, dames,            // ### figuren
     turmw1, turmw2, laeuferw1, laeuferw2, damew: TLanglaeufer;
 
-    koenigs, pferds1: TSchachfigur;
+    koenigs, pferds1: TSchachfigur;                         // ###
 
     auswahl:TSchachfigur; //auswahl ist hier, damit es nach anwählen der figur auch fürs gehen erhalten bleibt.
 
@@ -60,17 +57,19 @@ end;
 
 function TForm1.StrToFig;
 begin
- if s='turms1' then Result:=turms1;
- if s='turms2' then Result:=turms2;
- if s='laeufers1' then Result:=laeufers1;
- if s='laeufers2' then Result:=laeufers2;
- if s='dames' then Result:=dames;
+ if s='turms1'    then Result:=turms1    else
+ if s='turms2'    then Result:=turms2    else
+ if s='laeufers1' then Result:=laeufers1 else
+ if s='laeufers2' then Result:=laeufers2 else
+ if s='dames'     then Result:=dames     else
 
- if s='turmw1' then Result:=turmw1;
- if s='turmw2' then Result:=turmw2;
- if s='laeuferw1' then Result:=laeuferw1;
- if s='laeuferw2' then Result:=laeuferw2;
- if s='damew' then Result:=damew;
+ if s='turmw1'    then Result:=turmw1    else
+ if s='turmw2'    then Result:=turmw2    else
+ if s='laeuferw1' then Result:=laeuferw1 else
+ if s='laeuferw2' then Result:=laeuferw2 else
+ if s='damew'     then Result:=damew     else
+
+ Result:=nil;
 end;
 
 procedure TForm1.DrawField;
@@ -78,14 +77,12 @@ var x,y:Byte;
 begin
  with Canvas do                                    //#####   zeichnet das Schachfeld
   begin
-   Brush.Color:=clBlack;
-   Pen.Color:=clBlack;
    for x:=0 to 7 do
     begin
      for y:=0 to 7 do
       begin
 
-       if ( ( ( abs( x - y ) ) mod 2 ) = 0 ) then  //karoprinzip
+       if ( ( ( abs( x - y ) ) mod 2 ) = 0 ) then  //karomuster
         begin
          Brush.Color:=clWhite;
          Pen.Color:=clWhite;
@@ -96,13 +93,13 @@ begin
          Pen.Color:=clBlack;
         end;
 
-       Rectangle(x*75,y*75,x*75+76,y*75+76);      //#####
+       Rectangle(x*75,y*75,x*75+76,y*75+76);      
 
       end;
     end;
-  end;
+  end;                                            //#####
 
- turms1.zeichnen(Canvas,Memo1);
+ turms1.zeichnen(Canvas,Memo1);                   //figuren zeichnen
  turms2.zeichnen(Canvas,Memo1);
  laeufers1.zeichnen(Canvas,Memo1);
  laeufers2.zeichnen(Canvas,Memo1);
@@ -121,77 +118,86 @@ var s:string;
     cx,cy:Byte;
 begin
 
- s:=Edit1.Text;
+ s:=Edit1.Text;                                                     //eingabe einlesen
 
- if (copy(s,1,2) = 'go') or (copy(s,1,2) = 'cf') then
+ if (copy(s,1,2) = 'go') or (copy(s,1,2) = 'cf') then               //einzig akzeptable anfänge
 
   begin
 
-   if copy(s,1,2) = 'go' then                                       //GEHEN
+   if copy(s,1,2) = 'go' then                                       //   #####   GEHEN   #####   //
 
     begin
 
-     cx:=StrToInt(s[3]);
+     cx:=StrToInt(s[3]);                                            //koordinaten einlesen
      cy:=StrToInt(s[4]);
 
-     if (IsInteger(s[3])=true) and (IsInteger(s[4])=true) then
+     if (IsInteger(s[3])=true) and (IsInteger(s[4])=true) then      //nach go müssen 2 ziffern folgen
 
       begin
 
-       if (auswahl=turms1) or (auswahl=turms2) or (auswahl=laeufers1) or (auswahl=laeufers2) or (auswahl=dames) or
-          (auswahl=turmw1) or (auswahl=turmw2) or (auswahl=laeuferw1) or (auswahl=laeuferw2) or (auswahl=damew) then
+       if auswahl <> nil then                                       //nur wenn eine figur angewählt ist
 
         begin
 
-         if auswahl.IsLegal[cx][cy]=true then
+         if auswahl.IsLegal[cx][cy]=true then                       //nur wenn das feld bei der anwahl als begehbar deklariert wurde
 
           begin
-           auswahl.gehe(cx,cy);
-           DrawField;
+           besetzt[auswahl.x][auswahl.y]:=0;                        //altes feld freigeben
+           whosthere[auswahl.x][auswahl.y]:=nil;
+
+           auswahl.gehe(cx,cy);                                     //gehen (attribute setzen)
+
+           if auswahl.f=false then                                  //feld besetzen
+            besetzt[auswahl.x][auswahl.y]:=1
+           else
+            besetzt[auswahl.x][auswahl.y]:=2;
+           whosthere[auswahl.x][auswahl.y]:=auswahl;
+
+           auswahl:=nil;                                            //auswhl löschen
+           DrawField;                                               //neu zeichnen
           end
 
-         else memo1.Lines.Add('Feld nicht erlaubt oder keine Figur angewählt, du Doofkopf!');
+         else memo1.Lines.Add('FELD NICHT ERLAUBT oder NOCH KEINE FIGUR ANGEWÄHLT!');
 
         end
 
-       else memo1.Lines.Add('Keine Figur angewählt.');
+       else memo1.Lines.Add('KEINE FIGUR ANGEWÄHLT!');
 
       end
 
-     else memo1.Lines.Add('nach "go" zwei Ziffern eingeben!');
+     else memo1.Lines.Add('NACH "go" ZWEI ZIFFERN ZIFFERN EINGEBEN!');
 
     end;
 
-   if copy(s,1,2) = 'cf' then                                      //FIGUR WECHSELN
+   if copy(s,1,2) = 'cf' then                                      //   #####   FIGUR WECHSELN   #####   //
 
     begin
 
-     auswahl:=StrToFig(copy(s,3,length(s)));
+     auswahl:=StrToFig(copy(s,3,length(s)));                       //figur einlesen & ANWÄHLEN
 
-     if (auswahl=turms1) or (auswahl=turms2) or (auswahl=laeufers1) or (auswahl=laeufers2) or (auswahl=dames) or
-        (auswahl=turmw1) or (auswahl=turmw2) or (auswahl=laeuferw1) or (auswahl=laeuferw2) or (auswahl=damew) then
+     if auswahl <> nil then                                        //nur wenn gültige figur
 
       begin
-       DrawField;
-       auswahl.zeigebewegungsmoeglichkeiten(Memo1,Canvas{,besetzt});
+       DrawField;                                                  //alte überzeichnungen entfernen
+       auswahl.zeigebewegungsmoeglichkeiten(Memo1,Canvas,besetzt); //bewegungsmöglichkeiten anzeigen
       end
 
-     else memo1.Lines.Add('nach "cf" name einer figur eingeben (z.B.: cfturms1)');
+     else memo1.Lines.Add('NACH "cf" DEN NAMEN EINER FIGUR EINGEBEN ("cf<typ><farbinitial><nummer>" z.B.: "cfturms1")');
 
     end
 
   end
 
- else memo1.Lines.Add('Fehlerhafte Eingabe!!!');
+ else memo1.Lines.Add('FEHLERHAFTE EINGABE!!!');
 
- Edit1.Text:='';
+ Edit1.Text:='';                                                   //eingabefeld leeren
 
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
- Form1.ClientWidth:=850;
- Form1.ClientHeight:=700;
+ Form1.ClientWidth:=850;                         //GUI anpassen
+ Form1.ClientHeight:=700;                        //weil sonst auf unterschiedlichen computern falsch angezeigt
 
  Image1.Top:=600;
  Image1.Left:=0;
@@ -218,67 +224,47 @@ begin
  Memo1.Width:=250;
  Memo1.Height:=700;
 
+                                                 //FIGUREN ERSCHAFFEN
 
-
- turms1:=TLanglaeufer.create(1,8,true,'Turm Schwarz Links','Turm');
- turms1.vertikalhorizontal:=true;
- turms1.diagonal:=false;
+ turms1:=TLanglaeufer.create(1,8,true,true,false,'Turm Schwarz Links','Turm');
  whosthere[1][8]:=turms1;
  besetzt[1][8]:=2;
 
- turms2:=TLanglaeufer.create(8,8,true,'Turm Schwarz Rechts','Turm');
- turms2.vertikalhorizontal:=true;
- turms2.diagonal:=false;
+ turms2:=TLanglaeufer.create(8,8,true,true,false,'Turm Schwarz Rechts','Turm');
  whosthere[8][8]:=turms2;
  besetzt[8][8]:=2;
 
- laeufers1:=TLanglaeufer.create(3,8,true,'Läufer Schwarz Links','Läufer');
- laeufers1.vertikalhorizontal:=false;
- laeufers1.diagonal:=true;
+ laeufers1:=TLanglaeufer.create(3,8,true,false,true,'Läufer Schwarz Links','Läufer');
  whosthere[3][8]:=laeufers1;
  besetzt[3][8]:=2;
 
- laeufers2:=TLanglaeufer.create(6,8,true,'Läufer Schwarz Rechts','Läufer');
- laeufers2.vertikalhorizontal:=false;
- laeufers2.diagonal:=true;
+ laeufers2:=TLanglaeufer.create(6,8,true,false,true,'Läufer Schwarz Rechts','Läufer');
  whosthere[6][8]:=laeufers2;
  besetzt[6][8]:=2;
 
- dames:=TLanglaeufer.create(4,8,true,'Dame Schwarz','Dame');
- dames.vertikalhorizontal:=true;
- dames.diagonal:=true;
+ dames:=TLanglaeufer.create(4,8,true,true,true,'Dame Schwarz','Dame');
  whosthere[4][8]:=dames;
  besetzt[4][8]:=2;
 
 
 
- turmw1:=TLanglaeufer.create(1,1,false,'Turm Weiss Links','Turm');
- turmw1.vertikalhorizontal:=true;
- turmw1.diagonal:=false;
+ turmw1:=TLanglaeufer.create(1,1,false,true,false,'Turm Weiss Links','Turm');
  whosthere[1][1]:=turmw1;
  besetzt[1][1]:=1;
 
- turmw2:=TLanglaeufer.create(8,1,false,'Turm Weiss Rechts','Turm');
- turmw2.vertikalhorizontal:=true;
- turmw2.diagonal:=false;
+ turmw2:=TLanglaeufer.create(8,1,false,true,false,'Turm Weiss Rechts','Turm');
  whosthere[8][1]:=turmw2;
  besetzt[8][1]:=1;
 
- laeuferw1:=TLanglaeufer.create(3,1,false,'Läufer Weiss Links','Läufer');
- laeuferw1.vertikalhorizontal:=false;
- laeuferw1.diagonal:=true;
+ laeuferw1:=TLanglaeufer.create(3,1,false,false,true,'Läufer Weiss Links','Läufer');
  whosthere[3][1]:=laeuferw1;
  besetzt[3][1]:=1;
 
- laeuferw2:=TLanglaeufer.create(6,1,false,'Läufer Weiss Rechts','Läufer');
- laeuferw2.vertikalhorizontal:=false;
- laeuferw2.diagonal:=true;
+ laeuferw2:=TLanglaeufer.create(6,1,false,false,true,'Läufer Weiss Rechts','Läufer');
  whosthere[6][1]:=laeuferw2;
  besetzt[6][1]:=1;
 
- damew:=TLanglaeufer.create(4,1,false,'Dame Weiss','Dame');
- damew.vertikalhorizontal:=true;
- damew.diagonal:=true;
+ damew:=TLanglaeufer.create(4,1,false,true,true,'Dame Weiss','Dame');
  whosthere[4][1]:=damew;
  besetzt[4][1]:=1;
 
