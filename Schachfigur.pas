@@ -74,7 +74,7 @@ begin
  AusgabeMemo.Lines.add('Figur ' + name + ' angewählt.');   //textausgabe
  AusgabeMemo.Lines.add('Bewegungsmöglichkeiten sind: ');
 
- clearlegal;                                               //zurücksetzen de letzten routine
+ clearlegal;                                               //zurücksetzen der letzten routine
 
  FeldCanvas.Brush.Color:=clAqua;                           //setzen der farbe
  FeldCanvas.Pen.Color:=clAqua;

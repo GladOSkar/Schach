@@ -8,12 +8,13 @@ type TLanglaeufer = class(TSchachfigur)
  private
   vertikalhorizontal:Boolean;
   diagonal:Boolean;
-  function nofriendthere(n:byte):boolean;                    //gibt wahr zurück falls auf dem feld niemand oder ein gegner ist.
-  procedure attackable(x,y:byte;cv:TCanvas);                 //malt ein gelbes rechteck auf ein feld, auf dem ein gegner schlagber ist.
+  function nofriendthere(n:byte):boolean;                         //gibt wahr zurück falls auf dem feld niemand oder ein gegner ist.
+  procedure attackable(x,y:byte;cv:TCanvas);                      //malt ein gelbes rechteck auf ein feld, auf dem ein gegner schlagber ist.
+  procedure mark(x,y:byte;cv:TCanvas;mem:TMemo;pbesetzt:TMatrix); //markiert alle erlaubten Felder
 
  public
   constructor create(px,py:byte;pf,vh,d:Boolean;pn,pt:string);
-  procedure zeigeBewegungsmoeglichkeiten(AusgabeMemo:TMemo;FeldCanvas:TCanvas;besetzt:TMatrix); override; //markiert alle erlaubten Felder türkis
+  procedure zeigeBewegungsmoeglichkeiten(AusgabeMemo:TMemo;FeldCanvas:TCanvas;besetzt:TMatrix); override; //probiert alle richtungen dieser figur (--> mark();)
 end;
 
 implementation
@@ -28,10 +29,8 @@ end;
 function TLanglaeufer.nofriendthere;
 begin
  if n=0 then result:=true else
- if (n=1) and (f=false) then result:=false else
- if (n=1) and (f=true)  then result:=true  else
- if (n=2) and (f=false) then result:=true  else
- if (n=2) and (f=true)  then result:=false;
+ if n=1 then result:=f else
+ if n=2 then result:=not(f);
 end;
 
 procedure TLanglaeufer.attackable;
@@ -47,6 +46,22 @@ begin
    Brush.Color:=clAqua;
    Pen.Color:=clAqua;
   end;
+end;
+
+procedure TLanglaeufer.mark;
+begin
+ if pbesetzt[x][y] = 0 then
+   begin                                                                                 //leeres Feld
+     mem.Lines.add('Feld '+IntToStr(x)+' '+IntToStr(y)+' ist erlaubt.');                   //Textausgabe                                                   
+     cv.Rectangle((x-1)*75+11,(Inverty(y)-1)*75+11,
+                  (x-1)*75+64,(Inverty(y)-1)*75+64);                                       //Bildausgabe
+   end
+ else
+   begin                                                                                 //feld mit gegner drauf
+     mem.Lines.add('Auf Feld '+IntToStr(x)+' '+IntToStr(y)+' kannst du schlagen!');        //Textausgabe                                                                                     
+     attackable(x,y,cv);                                                                   //Bildausgabe
+   end;
+ IsLegal[x][y]:=true;                                                                    //Feldfreigabe für nächsten Gehvorgang
 end;
 
 procedure TLanglaeufer.zeigeBewegungsmoeglichkeiten;
@@ -66,8 +81,8 @@ if vertikalhorizontal = true then   //prüfung auf Längs- und Querachse
   while (cuy < 8) and (nofriendthere(besetzt[cux][cuy+1])=true) do     //falls nicht aus dem Schachfeld heraus und keine Figur der eigenen Farbe auf dem Feld ist.
    begin
     cuy:=cuy+1;                                                        //verschiebe cursor auf nächstes feld
-
-    if besetzt[cux][cuy] = 0 then
+    mark(cux,cuy,FeldCanvas,AusgabeMemo,besetzt);
+   {if besetzt[cux][cuy] = 0 then
      begin
       AusgabeMemo.Lines.add('Feld '+IntToStr(cux)+' '+IntToStr(cuy)+' ist erlaubt.');                   //Textausgabe                                                   //Bildausgabe
       FeldCanvas.Rectangle((cux-1)*75+11,(Inverty(cuy)-1)*75+11,(cux-1)*75+64,(Inverty(cuy)-1)*75+64)   //anmalen
@@ -77,7 +92,7 @@ if vertikalhorizontal = true then   //prüfung auf Längs- und Querachse
       AusgabeMemo.Lines.add('Auf Feld '+IntToStr(cux)+' '+IntToStr(cuy)+' kannst du schlagen!');        //Textausgabe                                                                                     //feld mit gegner drauf
       attackable(cux,cuy,FeldCanvas);                                                                   //anmalen
      end;
-    IsLegal[cux][cuy]:=true;                                                                            //Platzfreigabe für nächsten Gehvorgang
+    IsLegal[cux][cuy]:=true;}                                                                            //Platzfreigabe für nächsten Gehvorgang
    end;
 
   cux:=x;

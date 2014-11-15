@@ -1,6 +1,6 @@
 object Form1: TForm1
-  Left = 659
-  Top = 178
+  Left = -919
+  Top = -21
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsDialog
   Caption = 'Schach'
@@ -328,9 +328,9 @@ object Form1: TForm1
   TextHeight = 16
   object Image1: TImage
     Left = 0
-    Top = 600
+    Top = 601
     Width = 650
-    Height = 100
+    Height = 99
     Anchors = [akLeft, akTop, akRight, akBottom]
     Picture.Data = {
       0A544A504547496D6167650C220000FFD8FFE000104A46494600010101006000
@@ -619,9 +619,9 @@ object Form1: TForm1
     OnClick = StartButtonClick
   end
   object Memo1: TMemo
-    Left = 600
+    Left = 601
     Top = 0
-    Width = 250
+    Width = 249
     Height = 745
     Anchors = [akLeft, akTop, akRight, akBottom]
     ScrollBars = ssVertical
@@ -631,22 +631,12 @@ object Form1: TForm1
     Left = 16
     Top = 663
     Width = 569
-    Height = 24
+    Height = 21
     Anchors = [akLeft, akBottom]
     TabOrder = 2
     Text = 'cmd: "go<x><y>" or "cf<figur>" z.B.: "go23" or "cfturms1"'
     OnEnter = Edit1Enter
     OnExit = Edit1Exit
     OnKeyDown = Edit1KeyDown
-  end
-  object enter: TButton
-    Left = 130
-    Top = 616
-    Width = 100
-    Height = 33
-    Anchors = [akLeft, akBottom]
-    Caption = '[enter]'
-    TabOrder = 3
-    OnClick = enterClick
   end
 end

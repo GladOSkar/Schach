@@ -13,8 +13,6 @@ type
     Memo1: TMemo;
     Image1: TImage;
     Edit1: TEdit;
-    enter: TButton;
-    procedure enterClick(Sender: TObject);               //-->eval;
     procedure StartButtonClick(Sender: TObject);         //-->DrawField;
     procedure FormCreate(Sender: TObject);               //Erstellt alle figuren und skaliert das GUI
     procedure FormClose(Sender: TObject; var Action: TCloseAction); //gibt den Ram wieder Frei
@@ -117,80 +115,52 @@ procedure TForm1.eval;
 var s:string;
     cx,cy:Byte;
 begin
+s:=Edit1.Text;                                                     //eingabe einlesen
 
- s:=Edit1.Text;                                                     //eingabe einlesen
+if copy(s,1,2) = 'go' then                                       //   #####   GEHEN   #####   //
+ begin
+  cx:=StrToInt(s[3]);                                            //koordinaten einlesen
+  cy:=StrToInt(s[4]);
 
- if (copy(s,1,2) = 'go') or (copy(s,1,2) = 'cf') then               //einzig akzeptable anfänge
+  if (IsInteger(s[3])=true) and (IsInteger(s[4])=true) then      //nach go müssen 2 ziffern folgen
+   begin
+    if auswahl <> nil then                                       //nur wenn eine figur angewählt ist
+     begin
+      if auswahl.IsLegal[cx][cy]=true then                       //nur wenn das feld bei der anwahl als begehbar deklariert wurde
+       begin
+        besetzt[auswahl.x][auswahl.y]:=0;                        //altes feld freigeben
+        whosthere[auswahl.x][auswahl.y]:=nil;
 
+        auswahl.gehe(cx,cy);                                     //gehen (attribute setzen)
+
+        if auswahl.f=false then besetzt[auswahl.x][auswahl.y]:=1
+                            else besetzt[auswahl.x][auswahl.y]:=2;//feld besetzen
+
+        whosthere[auswahl.x][auswahl.y]:=auswahl;
+
+        auswahl:=nil;                                            //auswhl löschen
+        DrawField;                                               //neu zeichnen
+       end else memo1.Lines.Add('FELD NICHT ERLAUBT oder NOCH KEINE FIGUR ANGEWÄHLT!');
+
+     end else memo1.Lines.Add('KEINE FIGUR ANGEWÄHLT!');
+
+   end else memo1.Lines.Add('NACH "go" ZWEI ZIFFERN ZIFFERN EINGEBEN!');
+
+ end else
+
+ if copy(s,1,2) = 'cf' then                                      //   #####   FIGUR WECHSELN   #####   //
   begin
+   auswahl:=StrToFig(copy(s,3,length(s)));                       //figur einlesen & ANWÄHLEN
 
-   if copy(s,1,2) = 'go' then                                       //   #####   GEHEN   #####   //
-
+   if auswahl <> nil then                                        //nur wenn gültige figur
     begin
+     DrawField;                                                  //alte überzeichnungen entfernen
+     auswahl.zeigebewegungsmoeglichkeiten(Memo1,Canvas,besetzt); //bewegungsmöglichkeiten anzeigen
+    end else memo1.Lines.Add('KEINE FIGUR MIT DEM NAMEN "'+ copy(s,3,length(s)) +'" GEFUNDEN! ("cf<typ><farbinitial><nummer>" z.B.: "cfturms1")');
 
-     cx:=StrToInt(s[3]);                                            //koordinaten einlesen
-     cy:=StrToInt(s[4]);
+  end else memo1.Lines.Add('FEHLERHAFTE EINGABE!!!');
 
-     if (IsInteger(s[3])=true) and (IsInteger(s[4])=true) then      //nach go müssen 2 ziffern folgen
-
-      begin
-
-       if auswahl <> nil then                                       //nur wenn eine figur angewählt ist
-
-        begin
-
-         if auswahl.IsLegal[cx][cy]=true then                       //nur wenn das feld bei der anwahl als begehbar deklariert wurde
-
-          begin
-           besetzt[auswahl.x][auswahl.y]:=0;                        //altes feld freigeben
-           whosthere[auswahl.x][auswahl.y]:=nil;
-
-           auswahl.gehe(cx,cy);                                     //gehen (attribute setzen)
-
-           if auswahl.f=false then                                  //feld besetzen
-            besetzt[auswahl.x][auswahl.y]:=1
-           else
-            besetzt[auswahl.x][auswahl.y]:=2;
-           whosthere[auswahl.x][auswahl.y]:=auswahl;
-
-           auswahl:=nil;                                            //auswhl löschen
-           DrawField;                                               //neu zeichnen
-          end
-
-         else memo1.Lines.Add('FELD NICHT ERLAUBT oder NOCH KEINE FIGUR ANGEWÄHLT!');
-
-        end
-
-       else memo1.Lines.Add('KEINE FIGUR ANGEWÄHLT!');
-
-      end
-
-     else memo1.Lines.Add('NACH "go" ZWEI ZIFFERN ZIFFERN EINGEBEN!');
-
-    end;
-
-   if copy(s,1,2) = 'cf' then                                      //   #####   FIGUR WECHSELN   #####   //
-
-    begin
-
-     auswahl:=StrToFig(copy(s,3,length(s)));                       //figur einlesen & ANWÄHLEN
-
-     if auswahl <> nil then                                        //nur wenn gültige figur
-
-      begin
-       DrawField;                                                  //alte überzeichnungen entfernen
-       auswahl.zeigebewegungsmoeglichkeiten(Memo1,Canvas,besetzt); //bewegungsmöglichkeiten anzeigen
-      end
-
-     else memo1.Lines.Add('NACH "cf" DEN NAMEN EINER FIGUR EINGEBEN ("cf<typ><farbinitial><nummer>" z.B.: "cfturms1")');
-
-    end
-
-  end
-
- else memo1.Lines.Add('FEHLERHAFTE EINGABE!!!');
-
- Edit1.Text:='';                                                   //eingabefeld leeren
+Edit1.Text:='';                                                   //eingabefeld leeren
 
 end;
 
@@ -213,11 +183,6 @@ begin
  StartButton.Left:=15;
  StartButton.Width:=100;
  StartButton.Height:=30;
-
- enter.Top:=615;
- enter.Left:=130;
- enter.Width:=100;
- enter.Height:=30;
 
  Memo1.Top:=0;
  Memo1.Left:=600;
@@ -288,11 +253,6 @@ end;
 procedure TForm1.Edit1Enter(Sender: TObject);
 begin
  Edit1.Text:='';
-end;
-
-procedure TForm1.enterClick(Sender: TObject);
-begin
- eval;
 end;
 
 procedure TForm1.StartButtonClick(Sender: TObject);
