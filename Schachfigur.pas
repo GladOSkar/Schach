@@ -5,16 +5,18 @@ interface
 uses StdCtrls,SysUtils,Graphics,Types;
 
 type
-  TMatrix = array[1..8] of array[1..8] of Byte;       //64 Bytes, siehe "besetzt" in main.pas Z.50
+  TMatrix = array[1..8] of array[1..8] of Byte;       //64 Bytes, siehe "besetzt" in main.pas Z.45
 
 type
   TBFeld = array[1..8] of array[1..8] of Boolean;     //64 Booleans
 
 type TSchachfigur = class(TObject)
  private
-  xpos:byte;                                 //position
-  ypos:byte;
+  indexinarray:byte;                         //position im "alive"-array
+  xpos:byte;                                 
+  ypos:byte;                                 //position
   farbe:boolean;                             //true=schwarz , false=weiss
+  dead:boolean;
   name:string;                               //Ausgabename
   typname:string;                            //Grafische Beschriftung
   procedure clearlegal;                      //sperren aller felder für nächsten Geh- oder Prüfvorgang
@@ -25,9 +27,11 @@ type TSchachfigur = class(TObject)
  public
   IsLegal:TBFeld;                            //freigabetabelle für den nächsten Gehvorgang (funktioniert nicht mit property)
 
-  property x:byte read xpos;                 //zugriffe
+  property i:byte read indexinarray write indexinarray;
+  property x:byte read xpos;
   property y:byte read ypos;
   property f:boolean read farbe;
+  property d:boolean read dead;              //zugriffe
 
   procedure zeigeBewegungsmoeglichkeiten(AusgabeMemo:TMemo;FeldCanvas:TCanvas;besetzt:TMatrix); virtual;  //markiert alle erlaubten Felder türkis
   procedure gehe(gx,gy:byte);                //geht auf Feld xy

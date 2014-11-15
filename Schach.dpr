@@ -10,7 +10,7 @@ uses
 
 begin
   Application.Initialize;
-  Application.Title := 'Schach von Hannah Mira und Oskar';
+  Application.Title := 'Schach von Hannah, Mira und Oskar';
   Application.CreateForm(TForm1, Form1);
   Application.Run;
 end.

@@ -1,6 +1,6 @@
 object Form1: TForm1
-  Left = -919
-  Top = -21
+  Left = 654
+  Top = 178
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsDialog
   Caption = 'Schach'
@@ -608,7 +608,7 @@ object Form1: TForm1
       3B03311E9B4A3E0CADD92FF62F42CC5A2EA3B9DA9DD63F1F13FFD9}
     Stretch = True
   end
-  object StartButton: TButton
+  object FeldZeichnen: TButton
     Left = 16
     Top = 615
     Width = 97
@@ -616,7 +616,7 @@ object Form1: TForm1
     Anchors = [akLeft, akBottom]
     Caption = 'Feld zeichnen'
     TabOrder = 0
-    OnClick = StartButtonClick
+    OnClick = FeldZeichnenClick
   end
   object Memo1: TMemo
     Left = 601
@@ -627,16 +627,16 @@ object Form1: TForm1
     ScrollBars = ssVertical
     TabOrder = 1
   end
-  object Edit1: TEdit
+  object CommandEdit: TEdit
     Left = 16
     Top = 663
     Width = 569
-    Height = 21
+    Height = 24
     Anchors = [akLeft, akBottom]
     TabOrder = 2
     Text = 'cmd: "go<x><y>" or "cf<figur>" z.B.: "go23" or "cfturms1"'
-    OnEnter = Edit1Enter
-    OnExit = Edit1Exit
-    OnKeyDown = Edit1KeyDown
+    OnEnter = CommandEditEnter
+    OnExit = CommandEditExit
+    OnKeyDown = CommandEditKeyDown
   end
 end
