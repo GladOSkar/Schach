@@ -81,18 +81,7 @@ if vertikalhorizontal = true then   //prüfung auf Längs- und Querachse
   while (cuy < 8) and (nofriendthere(besetzt[cux][cuy+1])=true) do     //falls nicht aus dem Schachfeld heraus und keine Figur der eigenen Farbe auf dem Feld ist.
    begin
     cuy:=cuy+1;                                                        //verschiebe cursor auf nächstes feld
-    mark(cux,cuy,FeldCanvas,AusgabeMemo,besetzt);
-   {if besetzt[cux][cuy] = 0 then
-     begin
-      AusgabeMemo.Lines.add('Feld '+IntToStr(cux)+' '+IntToStr(cuy)+' ist erlaubt.');                   //Textausgabe                                                   //Bildausgabe
-      FeldCanvas.Rectangle((cux-1)*75+11,(Inverty(cuy)-1)*75+11,(cux-1)*75+64,(Inverty(cuy)-1)*75+64)   //anmalen
-     end
-    else
-     begin
-      AusgabeMemo.Lines.add('Auf Feld '+IntToStr(cux)+' '+IntToStr(cuy)+' kannst du schlagen!');        //Textausgabe                                                                                     //feld mit gegner drauf
-      attackable(cux,cuy,FeldCanvas);                                                                   //anmalen
-     end;
-    IsLegal[cux][cuy]:=true;}                                                                            //Platzfreigabe für nächsten Gehvorgang
+    mark(cux,cuy,FeldCanvas,AusgabeMemo,besetzt);                      //Markieren
    end;
 
   cux:=x;
@@ -103,9 +92,7 @@ if vertikalhorizontal = true then   //prüfung auf Längs- und Querachse
   while (cux < 8) and (nofriendthere(besetzt[cux+1][cuy])=true) do
    begin
     cux:=cux+1;
-    AusgabeMemo.Lines.add('Feld '+IntToStr(cux)+' '+IntToStr(cuy)+' ist erlaubt.');
-    FeldCanvas.Rectangle((cux-1)*75+11,(Inverty(cuy)-1)*75+11,(cux-1)*75+64,(Inverty(cuy)-1)*75+64);
-    IsLegal[cux][cuy]:=true;
+    mark(cux,cuy,FeldCanvas,AusgabeMemo,besetzt);
    end;
 
   cux:=x;
@@ -116,9 +103,7 @@ if vertikalhorizontal = true then   //prüfung auf Längs- und Querachse
   while (cuy > 1) and (nofriendthere(besetzt[cux][cuy-1])=true) do
    begin
     cuy:=cuy-1;
-    AusgabeMemo.Lines.add('Feld '+IntToStr(cux)+' '+IntToStr(cuy)+' ist erlaubt.');
-    FeldCanvas.Rectangle((cux-1)*75+11,(Inverty(cuy)-1)*75+11,(cux-1)*75+64,(Inverty(cuy)-1)*75+64);
-    IsLegal[cux][cuy]:=true;
+    mark(cux,cuy,FeldCanvas,AusgabeMemo,besetzt);
    end;
 
   cux:=x;
@@ -129,9 +114,7 @@ if vertikalhorizontal = true then   //prüfung auf Längs- und Querachse
   while (cux > 1) and (nofriendthere(besetzt[cux-1][cuy])=true) do
    begin
     cux:=cux-1;
-    AusgabeMemo.Lines.add('Feld '+IntToStr(cux)+' '+IntToStr(cuy)+' ist erlaubt.');
-    FeldCanvas.Rectangle((cux-1)*75+11,(Inverty(cuy)-1)*75+11,(cux-1)*75+64,(Inverty(cuy)-1)*75+64);
-    IsLegal[cux][cuy]:=true;
+    mark(cux,cuy,FeldCanvas,AusgabeMemo,besetzt);
    end;
 
  end;
@@ -148,9 +131,7 @@ if diagonal = true then
    begin
     cuy:=cuy+1;
     cux:=cux+1;
-    AusgabeMemo.Lines.add('Feld '+IntToStr(cux)+' '+IntToStr(cuy)+' ist erlaubt.');
-    FeldCanvas.Rectangle((cux-1)*75+11,(Inverty(cuy)-1)*75+11,(cux-1)*75+64,(Inverty(cuy)-1)*75+64);
-    IsLegal[cux][cuy]:=true;
+    mark(cux,cuy,FeldCanvas,AusgabeMemo,besetzt);
    end;
 
   cux:=x;
@@ -162,9 +143,7 @@ if diagonal = true then
    begin
     cux:=cux+1;
     cuy:=cuy-1;
-    AusgabeMemo.Lines.add('Feld '+IntToStr(cux)+' '+IntToStr(cuy)+' ist erlaubt.');
-    FeldCanvas.Rectangle((cux-1)*75+11,(Inverty(cuy)-1)*75+11,(cux-1)*75+64,(Inverty(cuy)-1)*75+64);
-    IsLegal[cux][cuy]:=true;
+    mark(cux,cuy,FeldCanvas,AusgabeMemo,besetzt);
    end;
 
   cux:=x;
@@ -176,9 +155,7 @@ if diagonal = true then
    begin
     cuy:=cuy-1;
     cux:=cux-1;
-    AusgabeMemo.Lines.add('Feld '+IntToStr(cux)+' '+IntToStr(cuy)+' ist erlaubt.');
-    FeldCanvas.Rectangle((cux-1)*75+11,(Inverty(cuy)-1)*75+11,(cux-1)*75+64,(Inverty(cuy)-1)*75+64);
-    IsLegal[cux][cuy]:=true;
+    mark(cux,cuy,FeldCanvas,AusgabeMemo,besetzt);
   end;
 
   cux:=x;
@@ -190,9 +167,7 @@ if diagonal = true then
    begin
     cux:=cux-1;
     cuy:=cuy+1;
-    AusgabeMemo.Lines.add('Feld '+IntToStr(cux)+' '+IntToStr(cuy)+' ist erlaubt.');
-    FeldCanvas.Rectangle((cux-1)*75+11,(Inverty(cuy)-1)*75+11,(cux-1)*75+64,(Inverty(cuy)-1)*75+64);
-    IsLegal[cux][cuy]:=true;
+    mark(cux,cuy,FeldCanvas,AusgabeMemo,besetzt);
    end;
 
  end;

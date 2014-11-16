@@ -12,7 +12,7 @@ type
 
 type TSchachfigur = class(TObject)
  private
-  indexinarray:byte;                         //position im "alive"-array
+  indexinalive:byte;                         //position im "alive"-array
   xpos:byte;                                 
   ypos:byte;                                 //position
   farbe:boolean;                             //true=schwarz , false=weiss
@@ -27,7 +27,7 @@ type TSchachfigur = class(TObject)
  public
   IsLegal:TBFeld;                            //freigabetabelle für den nächsten Gehvorgang (funktioniert nicht mit property)
 
-  property i:byte read indexinarray write indexinarray;
+  property i:byte read indexinalive write indexinalive;
   property x:byte read xpos;
   property y:byte read ypos;
   property f:boolean read farbe;
@@ -45,7 +45,7 @@ implementation
 
 function TSchachfigur.InvertY;
 begin
- Result:=(a*(-1))+9;
+ Result:=-a+9;
 end;
 
 procedure TSchachfigur.clearlegal;

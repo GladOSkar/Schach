@@ -17,10 +17,11 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);                   //gibt den Ram wieder Frei
     procedure CommandEditEnter(Sender: TObject);                                      //macht die kommandozeile leer
     procedure CommandEditKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); //-->eval;
-    procedure CommandEditExit(Sender: TObject);                                       //setzt wieder hilfe in kommandozeile
+    procedure CommandEditExit(Sender: TObject);
+    procedure FormClick(Sender: TObject);                                       //setzt wieder hilfe in kommandozeile
 
   private
-    procedure deletefromarray(item:TSchachfigur);        //löscht eine figur aus dem alive-array
+    procedure deletefromalive(item:TSchachfigur);        //löscht eine figur aus dem alive-array
     procedure DrawField;                                 //zeichnet das Feld und alle figuren neu
     procedure eval;                                      //kommandozeilenauswertung
     function StrToFig(s:string):TSchachfigur;            //wandelt einen string in einen Figurenbezeichner um
@@ -68,16 +69,16 @@ begin
  Result:=nil;
 end;
 
-procedure TForm1.deletefromarray;
+procedure TForm1.deletefromalive;
 var c:byte;
 begin
- alive[item.i]:=nil;
- for c:=(item.i+1) to length(alive) do
+ alive[item.i]:=nil;                               //eintrag der figur entfernen
+ for c:=(item.i+1) to (length(alive)-1) do         //alle folgenden:
   begin
-   alive[c]:=alive[c+1];
-   alive[c].i:=c;
+   alive[c]:=alive[(c+1)];                         //um 1 nach oben verschieben
+   alive[c].i:=c;          // ### FEHLER ### //    //"indexinarray" auf neue position aktualisieren
   end;
- SetLength(alive,length(alive)-1);
+ SetLength(alive,length(alive)-1);                 //array um 1 verkürzen
 end;
 
 procedure TForm1.DrawField;
@@ -96,14 +97,12 @@ begin
      for y:=0 to 7 do
       begin
        if ( ( ( abs( x - y ) ) mod 2 ) = 1 ) then  //karomuster schwarz
-        begin
-         Rectangle(x*75,y*75,x*75+76,y*75+76);
-        end;
+        Rectangle(x*75,y*75,x*75+76,y*75+76);
       end;
     end;
   end;                                             //#####
 
- for i:=1 to (length(alive)-1) do
+ for i:=0 to (length(alive)-1) do
   alive[i].zeichnen(Canvas,Memo1);                //figuren zeichnen
 
 end;
@@ -139,7 +138,7 @@ if copy(s,1,2) = 'go' then                               //   #####   GEHEN   ##
        begin
         if besetzt[cx][cy]<>0 then                               // ### schlagen?!
          begin
-          deletefromarray(whosthere[cx][cy]);
+          deletefromalive(whosthere[cx][cy]);
           //whosthere[cx][cy].stirb;
          end;                                                    // ###
 
@@ -237,26 +236,26 @@ begin
  whosthere[4][1]:=damew;
  besetzt[4][1]:=1;
 
- SetLength(alive,11);
- alive[1]:=turms1;
- alive[2]:=turms2;
- alive[3]:=laeufers1;
- alive[4]:=laeufers2;
- alive[5]:=dames;
- alive[6]:=turmw1;
- alive[7]:=turmw2;
- alive[8]:=laeuferw1;
- alive[9]:=laeuferw2;
- alive[10]:=damew;
+ SetLength(alive,10);
+ alive[0]:=turms1;
+ alive[1]:=turms2;
+ alive[2]:=laeufers1;
+ alive[3]:=laeufers2;
+ alive[4]:=dames;
+ alive[5]:=turmw1;
+ alive[6]:=turmw2;
+ alive[7]:=laeuferw1;
+ alive[8]:=laeuferw2;
+ alive[9]:=damew;
 
- for k:=1 to 10 do
+ for k:=0 to 9 do
   alive[k].i:=k;
 end;
 
 procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
 var i:byte;
 begin
- for i:=1 to (length(alive)-1) do alive[i].stirb;
+ for i:=0 to (length(alive)-1) do alive[i].stirb;
 end;
 
 procedure TForm1.CommandEditEnter(Sender: TObject);
@@ -277,6 +276,28 @@ end;
 procedure TForm1.CommandEditExit(Sender: TObject);
 begin
  CommandEdit.Text:='cmd: "go<x><y>" or "cf<figur>" z.B.: "go23" or "cfturms1"'
+end;
+
+procedure TForm1.FormClick(Sender: TObject);
+var x,y:integer;
+    xf,yf:byte;
+begin
+ x:=ScreenToClient(Mouse.CursorPos).X;
+ y:=ScreenToClient(Mouse.CursorPos).Y;
+ Memo1.Lines.Add('Position '+IntToStr(x)+' '+IntToStr(y)+' angeklickt.');
+
+ xf:= x div 75 + 1;
+ yf:= -(y div 75 + 1)+9;
+
+ Memo1.Lines.Add('Feld '+IntToStr(xf)+' '+IntToStr(yf)+' angeklickt.');
+
+ if whosthere[xf][yf]<>nil then
+  begin
+   DrawField;                                                  //alte überzeichnungen entfernen
+   auswahl:=whosthere[xf][yf];
+   auswahl.zeigebewegungsmoeglichkeiten(Memo1,Canvas,besetzt); //bewegungsmöglichkeiten anzeigen
+
+  end;
 end;
 
 end.

@@ -1,6 +1,6 @@
 object Form1: TForm1
-  Left = 654
-  Top = 178
+  Left = 812
+  Top = 198
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsDialog
   Caption = 'Schach'
@@ -319,6 +319,7 @@ object Form1: TForm1
     0000000000000000000000000000000000000000000000000000000000000000
     0000000000000000000000000000}
   OldCreateOrder = False
+  OnClick = FormClick
   OnClose = FormClose
   OnCreate = FormCreate
   DesignSize = (
