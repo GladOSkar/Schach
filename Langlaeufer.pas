@@ -8,7 +8,7 @@ type TLanglaeufer = class(TSchachfigur)
  private
   vertikalhorizontal:Boolean;
   diagonal:Boolean;
-  function nofriendthere(n:byte):boolean;                         //gibt wahr zurück falls auf dem feld niemand oder ein gegner ist.
+  function OkToGo(n:byte):boolean;                         //gibt wahr zurück falls auf dem feld niemand oder ein gegner ist.
   procedure attackable(x,y:byte;cv:TCanvas);                      //malt ein gelbes rechteck auf ein feld, auf dem ein gegner schlagber ist.
   procedure mark(x,y:byte;cv:TCanvas;mem:TMemo;pbesetzt:TMatrix); //markiert alle erlaubten Felder
 
@@ -18,6 +18,8 @@ type TLanglaeufer = class(TSchachfigur)
 end;
 
 implementation
+                                             
+var PrevWasEnemy:Boolean;                    //siehe unten
 
 constructor TLanglaeufer.create;
 begin
@@ -26,11 +28,27 @@ begin
  diagonal:=d;
 end;
 
-function TLanglaeufer.nofriendthere;
+function TLanglaeufer.OkToGo;
 begin
- if n=0 then result:=true else
- if n=1 then result:=f else
- if n=2 then result:=not(f);
+ if PrevWasEnemy then                        /// ##### BUGGY!!! ##### ///
+  begin
+   result:=false;                            //falls auf dem vorigen Feld ein Gegner war, breche die Prüfung ab.
+   PrevWasEnemy:=false;
+  end else
+ if PrevWasEnemy=false then                  //andernfalls
+  begin
+   if n=0 then result:=true else               //falls das Feld leer ist, mache weiter
+   if n=1 then                                 //falls auf dem Feld eine weisse Figur ist
+    begin
+     result:=f;                                  //falls du schwarz bist: mache weiter, falls du weiss bist: breche ab.
+     PrevWasEnemy:=f;                            //falls du schwarz bist: breche das nächste Mal ab.
+    end else
+   if n=2 then                                 //falls auf dem Feld eine schwarze Figur ist
+    begin
+     result:=not(f);                             //falls du weiss bist: mache weiter, falls du schwarz bist: breche ab.
+     PrevWasEnemy:=not(f);                       //falls du weiss bist: breche das nächste Mal ab.
+    end;
+  end;
 end;
 
 procedure TLanglaeufer.attackable;
@@ -38,13 +56,13 @@ begin
  with cv do
   begin
    Brush.Color:=clYellow;
-   Pen.Color:=clYellow;
+   Pen.Color:=clYellow;                             //farbe setzen
 
    Rectangle((x-1)*75+14,(Inverty(y)-1)*75+40,
-             (x-1)*75+61,(Inverty(y)-1)*75+61);
+             (x-1)*75+61,(Inverty(y)-1)*75+61);     //rechteck zeichnen
 
    Brush.Color:=clAqua;
-   Pen.Color:=clAqua;
+   Pen.Color:=clAqua;                               //farbe wieder zurücksetzen
   end;
 end;
 
@@ -78,8 +96,8 @@ if vertikalhorizontal = true then   //prüfung auf Längs- und Querachse
 
   //NACH OBEN
 
-  while (cuy < 8) and (nofriendthere(besetzt[cux][cuy+1])=true) do     //falls nicht aus dem Schachfeld heraus und keine Figur der eigenen Farbe auf dem Feld ist.
-   begin
+  while (cuy < 8) and (OkToGo(besetzt[cux][cuy+1])=true) do     //falls nicht aus dem Schachfeld heraus und das Feld begehbar ist.
+   begin                                                                                              //(Kriterien oben unter "OkToGo")
     cuy:=cuy+1;                                                        //verschiebe cursor auf nächstes feld
     mark(cux,cuy,FeldCanvas,AusgabeMemo,besetzt);                      //Markieren
    end;
@@ -89,7 +107,7 @@ if vertikalhorizontal = true then   //prüfung auf Längs- und Querachse
 
   //NACH RECHTS
 
-  while (cux < 8) and (nofriendthere(besetzt[cux+1][cuy])=true) do
+  while (cux < 8) and (OkToGo(besetzt[cux+1][cuy])=true) do
    begin
     cux:=cux+1;
     mark(cux,cuy,FeldCanvas,AusgabeMemo,besetzt);
@@ -100,7 +118,7 @@ if vertikalhorizontal = true then   //prüfung auf Längs- und Querachse
 
   //NACH UNTEN
 
-  while (cuy > 1) and (nofriendthere(besetzt[cux][cuy-1])=true) do
+  while (cuy > 1) and (OkToGo(besetzt[cux][cuy-1])=true) do
    begin
     cuy:=cuy-1;
     mark(cux,cuy,FeldCanvas,AusgabeMemo,besetzt);
@@ -111,7 +129,7 @@ if vertikalhorizontal = true then   //prüfung auf Längs- und Querachse
 
   //NACH LINKS
 
-  while (cux > 1) and (nofriendthere(besetzt[cux-1][cuy])=true) do
+  while (cux > 1) and (OkToGo(besetzt[cux-1][cuy])=true) do
    begin
     cux:=cux-1;
     mark(cux,cuy,FeldCanvas,AusgabeMemo,besetzt);
@@ -127,7 +145,7 @@ if diagonal = true then
 
   //NACH OBENRECHTS
 
-  while ((cuy < 8) and (cux < 8)) and (nofriendthere(besetzt[cux+1][cuy+1])=true) do
+  while ((cuy < 8) and (cux < 8)) and (OkToGo(besetzt[cux+1][cuy+1])=true) do
    begin
     cuy:=cuy+1;
     cux:=cux+1;
@@ -139,7 +157,7 @@ if diagonal = true then
 
   //NACH RECHTSUNTEN
 
-  while ((cux < 8) and (cuy > 1)) and (nofriendthere(besetzt[cux+1][cuy-1])=true) do
+  while ((cux < 8) and (cuy > 1)) and (OkToGo(besetzt[cux+1][cuy-1])=true) do
    begin
     cux:=cux+1;
     cuy:=cuy-1;
@@ -151,7 +169,7 @@ if diagonal = true then
 
   //NACH UNTENLINKS
 
-  while ((cuy > 1) and (cux > 1)) and (nofriendthere(besetzt[cux-1][cuy-1])=true) do
+  while ((cuy > 1) and (cux > 1)) and (OkToGo(besetzt[cux-1][cuy-1])=true) do
    begin
     cuy:=cuy-1;
     cux:=cux-1;
@@ -163,7 +181,7 @@ if diagonal = true then
 
   //NACH LINKSOBEN
 
-  while ((cux > 1) and (cuy < 8)) and (nofriendthere(besetzt[cux-1][cuy+1])=true) do
+  while ((cux > 1) and (cuy < 8)) and (OkToGo(besetzt[cux-1][cuy+1])=true) do
    begin
     cux:=cux-1;
     cuy:=cuy+1;

@@ -1,15 +1,15 @@
 object Form1: TForm1
-  Left = 812
+  Left = 200
   Top = 198
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsDialog
   Caption = 'Schach'
-  ClientHeight = 700
-  ClientWidth = 850
+  ClientHeight = 569
+  ClientWidth = 691
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -14
+  Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   Icon.Data = {
@@ -323,15 +323,15 @@ object Form1: TForm1
   OnClose = FormClose
   OnCreate = FormCreate
   DesignSize = (
-    850
-    700)
-  PixelsPerInch = 120
-  TextHeight = 16
+    691
+    569)
+  PixelsPerInch = 96
+  TextHeight = 13
   object Image1: TImage
     Left = 0
-    Top = 601
-    Width = 650
-    Height = 99
+    Top = 488
+    Width = 528
+    Height = 81
     Anchors = [akLeft, akTop, akRight, akBottom]
     Picture.Data = {
       0A544A504547496D6167650C220000FFD8FFE000104A46494600010101006000
@@ -610,29 +610,29 @@ object Form1: TForm1
     Stretch = True
   end
   object FeldZeichnen: TButton
-    Left = 16
-    Top = 615
-    Width = 97
-    Height = 34
+    Left = 13
+    Top = 500
+    Width = 79
+    Height = 27
     Anchors = [akLeft, akBottom]
     Caption = 'Feld zeichnen'
     TabOrder = 0
     OnClick = FeldZeichnenClick
   end
   object Memo1: TMemo
-    Left = 601
+    Left = 488
     Top = 0
-    Width = 249
-    Height = 745
+    Width = 203
+    Height = 605
     Anchors = [akLeft, akTop, akRight, akBottom]
     ScrollBars = ssVertical
     TabOrder = 1
   end
   object CommandEdit: TEdit
-    Left = 16
-    Top = 663
-    Width = 569
-    Height = 24
+    Left = 13
+    Top = 539
+    Width = 462
+    Height = 21
     Anchors = [akLeft, akBottom]
     TabOrder = 2
     Text = 'cmd: "go<x><y>" or "cf<figur>" z.B.: "go23" or "cfturms1"'

@@ -17,11 +17,10 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);                   //gibt den Ram wieder Frei
     procedure CommandEditEnter(Sender: TObject);                                      //macht die kommandozeile leer
     procedure CommandEditKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); //-->eval;
-    procedure CommandEditExit(Sender: TObject);
-    procedure FormClick(Sender: TObject);                                       //setzt wieder hilfe in kommandozeile
+    procedure CommandEditExit(Sender: TObject);                                       //setzt wieder hilfe in kommandozeile
+    procedure FormClick(Sender: TObject);                                             //trigger für das anklicken von figuren
 
   private
-    procedure deletefromalive(item:TSchachfigur);        //löscht eine figur aus dem alive-array
     procedure DrawField;                                 //zeichnet das Feld und alle figuren neu
     procedure eval;                                      //kommandozeilenauswertung
     function StrToFig(s:string):TSchachfigur;            //wandelt einen string in einen Figurenbezeichner um
@@ -40,7 +39,7 @@ var turms1, turms2, laeufers1, laeufers2, dames,            // ### figuren
 
     //koenigs, pferds1: TSchachfigur;                         // ###
 
-    alive:array of TSchachfigur;                            //liste aller aktiven(!) figuren
+    alive:array[0..9] of TSchachfigur;                      //liste aller aktiven(!) figuren (nil=inaktiv)
 
     auswahl:TSchachfigur; //auswahl ist hier, damit es nach anwählen der figur auch fürs gehen erhalten bleibt.
 
@@ -69,18 +68,6 @@ begin
  Result:=nil;
 end;
 
-procedure TForm1.deletefromalive;
-var c:byte;
-begin
- alive[item.i]:=nil;                               //eintrag der figur entfernen
- for c:=(item.i+1) to (length(alive)-1) do         //alle folgenden:
-  begin
-   alive[c]:=alive[(c+1)];                         //um 1 nach oben verschieben
-   alive[c].i:=c;          // ### FEHLER ### //    //"indexinarray" auf neue position aktualisieren
-  end;
- SetLength(alive,length(alive)-1);                 //array um 1 verkürzen
-end;
-
 procedure TForm1.DrawField;
 var x,y,i:Byte;
 begin
@@ -96,14 +83,15 @@ begin
     begin
      for y:=0 to 7 do
       begin
-       if ( ( ( abs( x - y ) ) mod 2 ) = 1 ) then  //karomuster schwarz
-        Rectangle(x*75,y*75,x*75+76,y*75+76);
+       if ( ( ( abs( x - y ) ) mod 2 ) = 1 ) then  //für alle felder wo |x-y| ungerade ist
+        Rectangle(x*75,y*75,x*75+76,y*75+76);      //karomuster schwarz
       end;
     end;
   end;                                             //#####
 
- for i:=0 to (length(alive)-1) do
-  alive[i].zeichnen(Canvas,Memo1);                //figuren zeichnen
+ for i:=0 to High(alive) do
+  if alive[i]<>nil then
+   alive[i].zeichnen(Canvas,Memo1);                //figuren zeichnen
 
 end;
 
@@ -117,7 +105,7 @@ if copy(s,1,2) = 'cf' then                              //   #####   FIGUR WECHS
  begin
   auswahl:=StrToFig(copy(s,3,length(s)));                       //figur einlesen & ANWÄHLEN
 
-  if (auswahl <> nil){ and (auswahl.dead<>true)} then           //nur wenn gültige figur
+  if (auswahl <> nil) and (alive[auswahl.i]<>nil) then          //nur wenn gültige figur
    begin
     DrawField;                                                  //alte überzeichnungen entfernen
     auswahl.zeigebewegungsmoeglichkeiten(Memo1,Canvas,besetzt); //bewegungsmöglichkeiten anzeigen
@@ -138,8 +126,8 @@ if copy(s,1,2) = 'go' then                               //   #####   GEHEN   ##
        begin
         if besetzt[cx][cy]<>0 then                               // ### schlagen?!
          begin
-          deletefromalive(whosthere[cx][cy]);
-          //whosthere[cx][cy].stirb;
+          alive[whosthere[cx][cy].i]:=nil;                          //alive-eintrag nullen
+          whosthere[cx][cy].stirb(memo1);                        //-->free;
          end;                                                    // ###
 
         besetzt[auswahl.x][auswahl.y]:=0;                        //altes feld freigeben
@@ -236,7 +224,6 @@ begin
  whosthere[4][1]:=damew;
  besetzt[4][1]:=1;
 
- SetLength(alive,10);
  alive[0]:=turms1;
  alive[1]:=turms2;
  alive[2]:=laeufers1;
@@ -246,16 +233,18 @@ begin
  alive[6]:=turmw2;
  alive[7]:=laeuferw1;
  alive[8]:=laeuferw2;
- alive[9]:=damew;
+ alive[9]:=damew;                                  //in alive einsetzen
 
  for k:=0 to 9 do
-  alive[k].i:=k;
+  alive[k].i:=k;                                   //indexinalive setzen
 end;
 
 procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
 var i:byte;
 begin
- for i:=0 to (length(alive)-1) do alive[i].stirb;
+ for i:=0 to (length(alive)-1) do
+  if alive[i]<> nil then
+   alive[i].stirb(memo1);
 end;
 
 procedure TForm1.CommandEditEnter(Sender: TObject);

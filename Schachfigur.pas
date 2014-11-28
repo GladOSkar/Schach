@@ -36,7 +36,7 @@ type TSchachfigur = class(TObject)
   procedure zeigeBewegungsmoeglichkeiten(AusgabeMemo:TMemo;FeldCanvas:TCanvas;besetzt:TMatrix); virtual;  //markiert alle erlaubten Felder türkis
   procedure gehe(gx,gy:byte);                //geht auf Feld xy
   procedure zeichnen(cv:TCanvas;mem:TMemo);  //zeichnet bewegtes objekt
-  procedure stirb;
+  procedure stirb(mem:TMemo);                //-->free;
 
   constructor create(px,py:byte;pf:Boolean;pn,pt:string);
 end;
@@ -116,7 +116,8 @@ end;
 
 procedure TSchachfigur.stirb;
 begin
- free;
+ mem.Lines.Add(name+' wurde geschlagen!');  //textausgabe
+ free;                                      //ramfreigabe
 end;
 
 end.
