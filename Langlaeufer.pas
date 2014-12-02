@@ -8,7 +8,8 @@ type TLanglaeufer = class(TSchachfigur)
  private
   vertikalhorizontal:Boolean;
   diagonal:Boolean;
-  function OkToGo(n:byte):boolean;                         //gibt wahr zurück falls auf dem feld niemand oder ein gegner ist.
+  procedure reset(var cux:byte;var cuy:byte);                     //setzt zurück für neue Richtung
+  function OkToGo(n:byte):boolean;                                //gibt wahr zurück falls auf dem feld niemand oder ein gegner ist.
   procedure attackable(x,y:byte;cv:TCanvas);                      //malt ein gelbes rechteck auf ein feld, auf dem ein gegner schlagber ist.
   procedure mark(x,y:byte;cv:TCanvas;mem:TMemo;pbesetzt:TMatrix); //markiert alle erlaubten Felder
 
@@ -27,6 +28,14 @@ begin
  vertikalhorizontal:=vh;
  diagonal:=d;
 end;
+
+procedure TLanglaeufer.reset;
+begin
+ cux:=x;
+ cuy:=y;
+ PrevWasEnemy:=false;
+end;
+
 
 function TLanglaeufer.OkToGo;
 begin
@@ -91,8 +100,7 @@ inherited zeigebewegungsmoeglichkeiten(AusgabeMemo,FeldCanvas,besetzt);
 if vertikalhorizontal = true then   //prüfung auf Längs- und Querachse
  begin
 
-  cux:=x;                           //prüfcursor auf position der figur setzen
-  cuy:=y;
+  reset(cux,cuy);                   //prüfcursor auf position der figur setzen (siehe oben)
 
   //NACH OBEN
 
@@ -102,8 +110,7 @@ if vertikalhorizontal = true then   //prüfung auf Längs- und Querachse
     mark(cux,cuy,FeldCanvas,AusgabeMemo,besetzt);                      //Markieren
    end;
 
-  cux:=x;
-  cuy:=y;
+  reset(cux,cuy);
 
   //NACH RECHTS
 
@@ -113,8 +120,7 @@ if vertikalhorizontal = true then   //prüfung auf Längs- und Querachse
     mark(cux,cuy,FeldCanvas,AusgabeMemo,besetzt);
    end;
 
-  cux:=x;
-  cuy:=y;
+  reset(cux,cuy);
 
   //NACH UNTEN
 
@@ -124,8 +130,7 @@ if vertikalhorizontal = true then   //prüfung auf Längs- und Querachse
     mark(cux,cuy,FeldCanvas,AusgabeMemo,besetzt);
    end;
 
-  cux:=x;
-  cuy:=y;
+  reset(cux,cuy);
 
   //NACH LINKS
 
@@ -140,8 +145,7 @@ if vertikalhorizontal = true then   //prüfung auf Längs- und Querachse
 if diagonal = true then
  begin
 
-  cux:=x;
-  cuy:=y;
+  reset(cux,cuy);
 
   //NACH OBENRECHTS
 
@@ -152,8 +156,7 @@ if diagonal = true then
     mark(cux,cuy,FeldCanvas,AusgabeMemo,besetzt);
    end;
 
-  cux:=x;
-  cuy:=y;
+  reset(cux,cuy);
 
   //NACH RECHTSUNTEN
 
@@ -164,8 +167,7 @@ if diagonal = true then
     mark(cux,cuy,FeldCanvas,AusgabeMemo,besetzt);
    end;
 
-  cux:=x;
-  cuy:=y;
+  reset(cux,cuy);
 
   //NACH UNTENLINKS
 
@@ -176,8 +178,7 @@ if diagonal = true then
     mark(cux,cuy,FeldCanvas,AusgabeMemo,besetzt);
   end;
 
-  cux:=x;
-  cuy:=y;
+  reset(cux,cuy);
 
   //NACH LINKSOBEN
 
