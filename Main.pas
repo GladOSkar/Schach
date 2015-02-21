@@ -12,6 +12,7 @@ type
     Memo1: TMemo;
     Image1: TImage;
     CommandEdit: TEdit;
+    function InvertY(a:byte):byte;                       //Umkehrung informatisches <-> mathematisches Koordinatensystem (8-1-->1-8)
     procedure FeldZeichnenClick(Sender: TObject);                                     //-->DrawField;
     procedure FormCreate(Sender: TObject);                                            //Erstellt alle figuren und skaliert das GUI
     procedure FormClose(Sender: TObject; var Action: TCloseAction);                   //gibt den Ram wieder Frei
@@ -45,10 +46,16 @@ var turms1, turms2, laeufers1, laeufers2, dames,            // ### figuren
 
     besetzt:TMatrix;                                        //für kollisionsprüfung    //0=leer, 1=weiss, 2=schwarz
     whosthere:array[1..8] of array[1..8] of TSchachfigur;   //für anwählen & schlagen
+    dran:boolean;
 
 function TForm1.IsInteger(const AString: String): Boolean;
 begin
   Result:=StrToIntDef(AString,0)=StrToIntDef(AString,1);
+end;
+
+function TForm1.InvertY;
+begin
+ Result:=-a+9;
 end;
 
 function TForm1.StrToFig;
@@ -75,7 +82,7 @@ begin
   begin
    Brush.Color:=clWhite;
    Pen.Color:=clWhite;
-   Rectangle(1,1,600,600);                         //hintergrund weiss
+   Rectangle(1,1,600,600);                             //hintergrund weiss
 
    Brush.Color:=clBlack;
    Pen.Color:=clBlack;
@@ -83,15 +90,15 @@ begin
     begin
      for y:=0 to 7 do
       begin
-       if ( ( ( abs( x - y ) ) mod 2 ) = 1 ) then  //für alle felder wo |x-y| ungerade ist
-        Rectangle(x*75,y*75,x*75+76,y*75+76);      //karomuster schwarz
+       if ( ( ( abs( x - y ) ) mod 2 ) = 1 ) then      //für alle felder wo |x-y| ungerade ist
+        Rectangle(x*75,y*75,x*75+76,y*75+76);          //karomuster schwarz
       end;
     end;
   end;                                             //#####
 
  for i:=0 to High(alive) do
   if alive[i]<>nil then
-   alive[i].zeichnen(Canvas,Memo1);                //figuren zeichnen
+   alive[i].zeichnen(Canvas,Memo1);                //alle lebenden figuren zeichnen
 
 end;
 
@@ -107,8 +114,12 @@ if copy(s,1,2) = 'cf' then                              //   #####   FIGUR WECHS
 
   if (auswahl <> nil) and (alive[auswahl.i]<>nil) then          //nur wenn gültige figur
    begin
-    DrawField;                                                  //alte überzeichnungen entfernen
-    auswahl.zeigebewegungsmoeglichkeiten(Memo1,Canvas,besetzt); //bewegungsmöglichkeiten anzeigen
+    if auswahl.f=dran then
+     begin
+      DrawField;                                                  //alte überzeichnungen entfernen
+      auswahl.zeigebewegungsmoeglichkeiten(Memo1,Canvas,besetzt); //bewegungsmöglichkeiten anzeigen
+     end else memo1.Lines.Add('DIE FARBE DIESER FIGUR IST NICHT DRAN!');
+
    end else memo1.Lines.Add('KEINE AKTIVE FIGUR MIT DEM NAMEN "'+ copy(s,3,length(s)) +'" GEFUNDEN! ("cf<typ><farbinitial><nummer>" z.B.: "cfturms1")');
 
   end else
@@ -127,7 +138,7 @@ if copy(s,1,2) = 'go' then                               //   #####   GEHEN   ##
         if besetzt[cx][cy]<>0 then                               // ### schlagen?!
          begin
           alive[whosthere[cx][cy].i]:=nil;                          //alive-eintrag nullen
-          whosthere[cx][cy].stirb(memo1);                        //-->free;
+          whosthere[cx][cy].stirb(memo1);                           //-->free;
          end;                                                    // ###
 
         besetzt[auswahl.x][auswahl.y]:=0;                        //altes feld freigeben
@@ -140,8 +151,14 @@ if copy(s,1,2) = 'go' then                               //   #####   GEHEN   ##
 
         whosthere[auswahl.x][auswahl.y]:=auswahl;
 
-        auswahl:=nil;                                            //auswhal löschen
+        auswahl:=nil;                                            //auswahl löschen
         DrawField;                                               //neu zeichnen
+
+        dran:=not(dran);                                         //der andere Spieler ist dran
+
+        if dran then memo1.Lines.Add('SCHWARZ ist jetzt dran!')  //|
+                  else memo1.Lines.Add('WEISS ist jetzt dran!')  //|Ausgabe
+
        end else memo1.Lines.Add('FELD NICHT ERLAUBT oder NOCH KEINE FIGUR ANGEWÄHLT!');
 
      end else memo1.Lines.Add('KEINE FIGUR ANGEWÄHLT!');
@@ -237,6 +254,9 @@ begin
 
  for k:=0 to 9 do
   alive[k].i:=k;                                   //indexinalive setzen
+
+ dran:=false;                                      //weiss ist dran
+ auswahl:=nil;                                     //keine Figur angewählt
 end;
 
 procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -276,16 +296,61 @@ begin
  Memo1.Lines.Add('Position '+IntToStr(x)+' '+IntToStr(y)+' angeklickt.');
 
  xf:= x div 75 + 1;
- yf:= -(y div 75 + 1)+9;
+ yf:= InvertY(y div 75 + 1);
 
  Memo1.Lines.Add('Feld '+IntToStr(xf)+' '+IntToStr(yf)+' angeklickt.');
 
- if whosthere[xf][yf]<>nil then
-  begin
-   DrawField;                                                  //alte überzeichnungen entfernen
-   auswahl:=whosthere[xf][yf];
-   auswahl.zeigebewegungsmoeglichkeiten(Memo1,Canvas,besetzt); //bewegungsmöglichkeiten anzeigen
 
+ if (auswahl<>nil) and auswahl.IsLegal[xf][yf] then    //FALLS das feld als begehbar gekennzeichnet ist ==> HINGEHEN
+  begin
+
+   if whosthere[xf][yf]<>nil then                            //FALLS sich eine Figur auf dem Feld befindet (muss vom Gegner sein, wäre sonst nicht erlaubt) ==> FIGUR TÖTEN
+    begin
+     alive[whosthere[xf][yf].i]:=nil;                            //alive-eintrag nullen
+     whosthere[xf][yf].stirb(memo1);                             //-->free;
+    end;
+
+   besetzt[auswahl.x][auswahl.y]:=0;                         //|altes Feld freigeben
+   whosthere[auswahl.x][auswahl.y]:=nil;                     //|
+
+   auswahl.gehe(xf,yf);                                      //GEHEN (attribute setzen)
+
+   if not(auswahl.f) then besetzt[auswahl.x][auswahl.y]:=1   //|
+                     else besetzt[auswahl.x][auswahl.y]:=2;  //|Feld besetzen
+                                                             //|
+   whosthere[auswahl.x][auswahl.y]:=auswahl;                 //|
+
+   auswahl:=nil;                                             //|auswahl löschen
+   DrawField;                                                //|
+
+   dran:=not(dran);                                          //der andere Spieler ist dran
+
+   if dran then memo1.Lines.Add('SCHWARZ ist jetzt dran!')   //|
+             else memo1.Lines.Add('WEISS ist jetzt dran!')   //|Ausgabe
+
+  end
+ else                                                    //FALLS das feld nicht begehbar ist
+  begin
+   if whosthere[xf][yf]<>nil then                            //FALLS sich eine Figur auf dem Feld befindet (muss eigene sein, wäre sonst begehbar) ==> ANWÄHLEN
+    begin
+     if whosthere[xf][yf].f=dran then                            //FALLS sich eine Figur auf dem Feld befindet (muss eigene sein, wäre sonst begehbar) ==> ANWÄHLEN
+      begin
+
+       DrawField;                                                    //alte überzeichnungen entfernen
+       auswahl:=whosthere[xf][yf];
+       auswahl.zeigebewegungsmoeglichkeiten(Memo1,Canvas,besetzt);   //bewegungsmöglichkeiten anzeigen
+
+      end;
+    end
+   else                                                      //FALLS das feld leer ist ==> NIX MACHEN
+    begin
+
+     auswahl:=nil;                                               //|auswahl löschen
+     DrawField;                                                  //|
+
+     Memo1.Lines.Add('Feld nicht erlaubt, du Horst!');           //Ausgabe
+
+    end;
   end;
 end;
 

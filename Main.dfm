@@ -615,7 +615,7 @@ object Form1: TForm1
     Width = 79
     Height = 27
     Anchors = [akLeft, akBottom]
-    Caption = 'Feld zeichnen'
+    Caption = 'Spiel Starten'
     TabOrder = 0
     OnClick = FeldZeichnenClick
   end
