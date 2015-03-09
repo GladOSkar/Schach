@@ -340,7 +340,8 @@ begin
        auswahl:=whosthere[xf][yf];
        auswahl.zeigebewegungsmoeglichkeiten(Memo1,Canvas,besetzt);   //bewegungsmöglichkeiten anzeigen
 
-      end;
+      end
+     else if dran then memo1.Lines.Add('SCHWARZ ist dran!') else memo1.Lines.Add('WEISS ist dran!'); 
     end
    else                                                      //FALLS das feld leer ist ==> NIX MACHEN
     begin
