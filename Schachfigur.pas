@@ -13,8 +13,6 @@ type
 type TSchachfigur = class(TObject)
  private
   indexinalive:byte;                         //position im "alive"-array
-  xpos:byte;                                 
-  ypos:byte;                                 //position
   farbe:boolean;                             //true=schwarz , false=weiss
   dead:boolean;
   name:string;                               //Ausgabename
@@ -22,7 +20,11 @@ type TSchachfigur = class(TObject)
   procedure clearlegal;                      //sperren aller felder für nächsten Geh- oder Prüfvorgang
 
  protected
+  xpos:byte;
+  ypos:byte;                                 //position
   function InvertY(a:byte):byte;             //Umkehrung informatisches <-> mathematisches Koordinatensystem (8-1-->1-8)
+  procedure markAttackable(x,y:byte;cv:TCanvas);                  //malt ein gelbes rechteck auf ein feld, auf dem ein gegner schlagber ist.
+  procedure mark(x,y:byte;cv:TCanvas;mem:TMemo;pbesetzt:TMatrix); //markiert alle erlaubten Felder
 
  public
   IsLegal:TBFeld;                            //freigabetabelle für den nächsten Gehvorgang (funktioniert nicht mit property)
@@ -35,7 +37,7 @@ type TSchachfigur = class(TObject)
 
   procedure zeigeBewegungsmoeglichkeiten(AusgabeMemo:TMemo;FeldCanvas:TCanvas;besetzt:TMatrix); virtual;  //markiert alle erlaubten Felder türkis
   procedure gehe(gx,gy:byte);                //geht auf Feld xy
-  procedure zeichnen(cv:TCanvas;mem:TMemo);  //zeichnet bewegtes objekt
+  procedure zeichnen(cv:TCanvas;mem:TMemo); virtual; //zeichnet bewegtes objekt
   procedure stirb(mem:TMemo);                //-->free;
 
   constructor create(px,py:byte;pf:Boolean;pn,pt:string);
@@ -59,7 +61,37 @@ for i:=1 to 8 do
     IsLegal[i][j]:=false;
    end;
  end;
+end;
 
+procedure TSchachfigur.markAttackable;
+begin
+ with cv do
+  begin
+   Brush.Color:=clYellow;
+   Pen.Color:=clYellow;                             //farbe setzen
+
+   Rectangle((x-1)*75+14,(Inverty(y)-1)*75+40,
+             (x-1)*75+61,(Inverty(y)-1)*75+61);     //rechteck zeichnen
+
+   Brush.Color:=clAqua;
+   Pen.Color:=clAqua;                               //farbe wieder zurücksetzen
+  end;
+end;
+
+procedure TSchachfigur.mark;
+begin
+ if pbesetzt[x][y] = 0 then
+   begin                                                                                 //leeres Feld
+     mem.Lines.add('Feld '+IntToStr(x)+' '+IntToStr(y)+' ist erlaubt.');                   //Textausgabe
+     cv.Rectangle((x-1)*75+11,(Inverty(y)-1)*75+11,
+                  (x-1)*75+64,(Inverty(y)-1)*75+64);                                       //Bildausgabe
+   end
+ else
+   begin                                                                                 //feld mit gegner drauf
+     mem.Lines.add('Auf Feld '+IntToStr(x)+' '+IntToStr(y)+' kannst du schlagen!');        //Textausgabe
+     markAttackable(x,y,cv);                                                                   //Bildausgabe
+   end;
+ IsLegal[x][y]:=true;                                                                    //Feldfreigabe für nächsten Gehvorgang
 end;
 
 constructor TSchachfigur.create;
@@ -98,10 +130,10 @@ begin
    cv.Pen.Color:=clBlack;                                  //rand
   end;
 
- cv.Font.Color:=(cv.Pen.Color);                            //textfarbe
+ {cv.Font.Color:=(cv.Pen.Color);                            //textfarbe
 
  cv.Rectangle((xpos-1)*75+11,(Inverty(ypos)-1)*75+11,(xpos-1)*75+64,(Inverty(ypos)-1)*75+64);  //figur zeichnen
- cv.TextOut((xpos-1)*75+20,(Inverty(ypos)-1)*75+20,typname);                                   //beschriften
+ cv.TextOut((xpos-1)*75+20,(Inverty(ypos)-1)*75+20,typname);                                   //beschriften }
 
  mem.Lines.add(name+': X=' + IntToStr(xpos) + ', Y=' + IntToStr(ypos));                        //textausgabe
 

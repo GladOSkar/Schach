@@ -301,35 +301,46 @@ begin
  Memo1.Lines.Add('Feld '+IntToStr(xf)+' '+IntToStr(yf)+' angeklickt.');
 
 
- if (auswahl<>nil) and auswahl.IsLegal[xf][yf] then    //FALLS das feld als begehbar gekennzeichnet ist ==> HINGEHEN
+ if auswahl<>nil then                                          //FALLS eine Figur angewählt ist
   begin
-
-   if whosthere[xf][yf]<>nil then                            //FALLS sich eine Figur auf dem Feld befindet (muss vom Gegner sein, wäre sonst nicht erlaubt) ==> FIGUR TÖTEN
+   if auswahl.IsLegal[xf][yf] then                             //FALLS das feld als begehbar gekennzeichnet ist ==> HINGEHEN
     begin
-     alive[whosthere[xf][yf].i]:=nil;                            //alive-eintrag nullen
-     whosthere[xf][yf].stirb(memo1);                             //-->free;
+
+     if whosthere[xf][yf]<>nil then                            //FALLS sich eine Figur auf dem Feld befindet (muss vom Gegner sein, wäre sonst nicht erlaubt) ==> FIGUR TÖTEN
+      begin
+       alive[whosthere[xf][yf].i]:=nil;                            //alive-eintrag nullen
+       whosthere[xf][yf].stirb(memo1);                             //-->free;
+      end;
+
+     besetzt[auswahl.x][auswahl.y]:=0;                         //|altes Feld freigeben
+     whosthere[auswahl.x][auswahl.y]:=nil;                     //|
+
+     auswahl.gehe(xf,yf);                                      //GEHEN (attribute setzen)
+
+     if not(auswahl.f) then besetzt[auswahl.x][auswahl.y]:=1   //|
+                       else besetzt[auswahl.x][auswahl.y]:=2;  //|Feld besetzen
+                                                               //|
+     whosthere[auswahl.x][auswahl.y]:=auswahl;                 //|
+
+     auswahl:=nil;                                             //|auswahl löschen
+     DrawField;                                                //|
+
+     dran:=not(dran);                                          //der andere Spieler ist dran
+
+     if dran then memo1.Lines.Add('SCHWARZ ist jetzt dran!')   //|
+               else memo1.Lines.Add('WEISS ist jetzt dran!')   //|Ausgabe
+    end
+   else
+    begin                                                   //FALLS das Feld nicht erlaubt ist
+     
+     auswahl:=nil;                                             //|auswahl löschen
+     DrawField;                                                //|
+
+     Memo1.Lines.Add('Feld nicht erlaubt, du Horst!');         //Ausgabe
+     
     end;
-
-   besetzt[auswahl.x][auswahl.y]:=0;                         //|altes Feld freigeben
-   whosthere[auswahl.x][auswahl.y]:=nil;                     //|
-
-   auswahl.gehe(xf,yf);                                      //GEHEN (attribute setzen)
-
-   if not(auswahl.f) then besetzt[auswahl.x][auswahl.y]:=1   //|
-                     else besetzt[auswahl.x][auswahl.y]:=2;  //|Feld besetzen
-                                                             //|
-   whosthere[auswahl.x][auswahl.y]:=auswahl;                 //|
-
-   auswahl:=nil;                                             //|auswahl löschen
-   DrawField;                                                //|
-
-   dran:=not(dran);                                          //der andere Spieler ist dran
-
-   if dran then memo1.Lines.Add('SCHWARZ ist jetzt dran!')   //|
-             else memo1.Lines.Add('WEISS ist jetzt dran!')   //|Ausgabe
-
   end
- else                                                    //FALLS das feld nicht begehbar ist
+ else                                                    //FALLS KEINE Figur angewählt ist
   begin
    if whosthere[xf][yf]<>nil then                            //FALLS sich eine Figur auf dem Feld befindet (muss eigene sein, wäre sonst begehbar) ==> ANWÄHLEN
     begin
@@ -341,18 +352,11 @@ begin
        auswahl.zeigebewegungsmoeglichkeiten(Memo1,Canvas,besetzt);   //bewegungsmöglichkeiten anzeigen
 
       end
-     else if dran then memo1.Lines.Add('SCHWARZ ist dran!') else memo1.Lines.Add('WEISS ist dran!'); 
+     else if dran then memo1.Lines.Add('SCHWARZ ist dran!') else memo1.Lines.Add('WEISS ist dran!');
     end
-   else                                                      //FALLS das feld leer ist ==> NIX MACHEN
-    begin
-
-     auswahl:=nil;                                               //|auswahl löschen
-     DrawField;                                                  //|
-
-     Memo1.Lines.Add('Feld nicht erlaubt, du Horst!');           //Ausgabe
-
-    end;
+   else Memo1.Lines.Add('Keine Figur hier!');                //FALLS das feld leer ist ==> NIX MACHEN
   end;
+
 end;
 
 end.

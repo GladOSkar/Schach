@@ -8,14 +8,13 @@ type TLanglaeufer = class(TSchachfigur)
  private
   vertikalhorizontal:Boolean;
   diagonal:Boolean;
-  procedure reset(var cux:byte;var cuy:byte);                     //setzt zurück für neue Richtung
-  function OkToGo(n:byte):boolean;                                //gibt wahr zurück falls auf dem feld niemand oder ein gegner ist.
-  procedure attackable(x,y:byte;cv:TCanvas);                      //malt ein gelbes rechteck auf ein feld, auf dem ein gegner schlagber ist.
-  procedure mark(x,y:byte;cv:TCanvas;mem:TMemo;pbesetzt:TMatrix); //markiert alle erlaubten Felder
+  procedure reset(var cux:byte;var cuy:byte);   //setzt zurück für neue Richtung
+  function OkToGo(n:byte):boolean;              //gibt wahr zurück falls auf dem feld niemand oder ein gegner ist.
 
  public
   constructor create(px,py:byte;pf,vh,d:Boolean;pn,pt:string);
   procedure zeigeBewegungsmoeglichkeiten(AusgabeMemo:TMemo;FeldCanvas:TCanvas;besetzt:TMatrix); override; //probiert alle richtungen dieser figur (--> mark();)
+  procedure zeichnen(cv:TCanvas;mem:TMemo); override; //zeichnet bewegtes objekt
 end;
 
 implementation
@@ -39,7 +38,7 @@ end;
 
 function TLanglaeufer.OkToGo;
 begin
- if PrevWasEnemy then                        /// ##### BUGGY!!! ##### ///
+ if PrevWasEnemy then
   begin
    result:=false;                            //falls auf dem vorigen Feld ein Gegner war, breche die Prüfung ab.
    PrevWasEnemy:=false;
@@ -58,37 +57,6 @@ begin
      PrevWasEnemy:=not(f);                       //falls du weiss bist: breche das nächste Mal ab.
     end;
   end;
-end;
-
-procedure TLanglaeufer.attackable;
-begin
- with cv do
-  begin
-   Brush.Color:=clYellow;
-   Pen.Color:=clYellow;                             //farbe setzen
-
-   Rectangle((x-1)*75+14,(Inverty(y)-1)*75+40,
-             (x-1)*75+61,(Inverty(y)-1)*75+61);     //rechteck zeichnen
-
-   Brush.Color:=clAqua;
-   Pen.Color:=clAqua;                               //farbe wieder zurücksetzen
-  end;
-end;
-
-procedure TLanglaeufer.mark;
-begin
- if pbesetzt[x][y] = 0 then
-   begin                                                                                 //leeres Feld
-     mem.Lines.add('Feld '+IntToStr(x)+' '+IntToStr(y)+' ist erlaubt.');                   //Textausgabe                                                   
-     cv.Rectangle((x-1)*75+11,(Inverty(y)-1)*75+11,
-                  (x-1)*75+64,(Inverty(y)-1)*75+64);                                       //Bildausgabe
-   end
- else
-   begin                                                                                 //feld mit gegner drauf
-     mem.Lines.add('Auf Feld '+IntToStr(x)+' '+IntToStr(y)+' kannst du schlagen!');        //Textausgabe                                                                                     
-     attackable(x,y,cv);                                                                   //Bildausgabe
-   end;
- IsLegal[x][y]:=true;                                                                    //Feldfreigabe für nächsten Gehvorgang
 end;
 
 procedure TLanglaeufer.zeigeBewegungsmoeglichkeiten;
@@ -192,4 +160,38 @@ if diagonal = true then
  end;
 end;
 
+procedure TLanglaeufer.zeichnen;
+var x,y:word;
+ begin
+
+  inherited zeichnen(cv,mem);                   //Farben setzen
+
+  x:=(xpos-1)*75;
+  y:=(Inverty(ypos)-1)*75;                      //umwandlung in Bildschirmkoordinaten
+
+  with cv do
+   begin
+    if vertikalhorizontal and not(diagonal) then       //Turm
+     begin
+      Rectangle(x+11,y+55,x+64,y+64);
+      Rectangle(x+21,y+30,x+54,y+56);
+      Rectangle(x+16,y+20,x+59,y+31);
+      Rectangle(x+16,y+11,x+26,y+21);
+      Rectangle(x+33,y+11,x+43,y+21);
+      Rectangle(x+49,y+11,x+59,y+21);
+     end
+    else if not(vertikalhorizontal) and diagonal then  //Läufer
+     begin
+      Rectangle(x+11,y+55,x+64,y+64);
+      Rectangle(x+26,y+30,x+49,y+56);
+      Ellipse(x+21,y+11,x+54,y+50);
+     end
+    else                                               //Dame
+     begin
+      Rectangle(x+11,y+55,x+64,y+64);
+      Rectangle(x+21,y+30,x+54,y+56);
+     end;
+   end;
+
+ end;
 end.
